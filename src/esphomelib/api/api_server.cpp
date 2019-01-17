@@ -169,6 +169,13 @@ void APIServer::on_text_sensor_update(text_sensor::TextSensor *obj, std::string 
     c->send_text_sensor_state(obj, state);
 }
 #endif
+#ifdef USE_ESP32_CAMERA
+void APIServer::on_camera_update(ESP32Camera *obj) {
+  if (obj->is_internal()) return;
+  for (auto *c : this->clients_)
+    c->send_camera_image(obj);
+}
+#endif
 float APIServer::get_setup_priority() const {
   return setup_priority::WIFI - 1.0f;
 }
@@ -682,7 +689,7 @@ bool APIConnection::send_buffer(APIMessageType type, APIBuffer &buf) {
 
 void APIConnection::loop() {
   if (this->client_->disconnected()) {
-    // failsave for disconnect logic
+    // failsafe for disconnect logic
     this->on_disconnect_();
   }
 
@@ -699,6 +706,32 @@ void APIConnection::loop() {
     this->sent_ping_ = true;
     this->send_ping_request();
   }
+
+#ifdef USE_ESP32_CAMERA
+  if (this->camera_image_.has_image()) {
+    // uint32_t space = std::min(this->buffer_size_, this->client_->space());
+    uint32_t space = this->client_->space();
+    // reserve 15 bytes for metadata, sending only really makes since with ~64 data bytes
+    if (space >= 15 + 64) {
+      uint8_t *buf;
+      uint32_t consumed;
+      bool done;
+      this->camera_image_.consume_at_most(space - 15, &buf, &consumed, &done);
+      // ESP_LOGD(TAG, "Sending %u bytes (buf=%p done=%d)", consumed, buf, done);
+      bool b = this->send_buffer([this, buf, consumed, done](APIBuffer &buffer) {
+        // fixed32 key = 1;
+        buffer.encode_fixed32(1, this->camera_image_.get_parent()->get_object_id_hash());
+        // bytes data = 2;
+        buffer.encode_bytes(2, buf, consumed);
+        // bool done = 3;
+        buffer.encode_bool(3, done);
+      }, APIMessageType::CAMERA_IMAGE_RESPONSE);
+      if (!b) {
+        ESP_LOGW(TAG, "Send failed!");
+      }
+    }
+  }
+#endif
 }
 
 #ifdef USE_BINARY_SENSOR
@@ -841,6 +874,16 @@ bool APIConnection::send_text_sensor_state(text_sensor::TextSensor *text_sensor,
     // string state = 2;
     buffer.encode_string(2, state);
   }, APIMessageType::TEXT_SENSOR_STATE_RESPONSE);
+}
+#endif
+
+#ifdef USE_ESP32_CAMERA
+bool APIConnection::send_camera_image(ESP32Camera *camera) {
+  if (!this->state_subscription_)
+    return false;
+
+  ESP_LOGD(TAG, "api::send_camera_image");
+  this->camera_image_.acquire(camera);
 }
 #endif
 

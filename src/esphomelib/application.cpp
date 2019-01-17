@@ -222,6 +222,13 @@ MQTTBinarySensorComponent *Application::register_binary_sensor(binary_sensor::Bi
 }
 #endif
 
+#ifdef USE_ESP32_CAMERA
+void Application::register_camera(ESP32Camera *camera) {
+  for (auto *controller : this->controllers_)
+    controller->register_camera(camera);
+}
+#endif
+
 #ifdef USE_GPIO_BINARY_SENSOR
 Application::MakeGPIOBinarySensor Application::make_gpio_binary_sensor(const std::string &friendly_name,
                                                                        const GPIOInputPin &pin,

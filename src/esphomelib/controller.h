@@ -8,6 +8,7 @@
 #include "esphomelib/switch_/switch.h"
 #include "esphomelib/cover/cover.h"
 #include "esphomelib/text_sensor/text_sensor.h"
+#include "esphomelib/esp32_camera.h"
 #include "esphomelib/defines.h"
 
 ESPHOMELIB_NAMESPACE_BEGIN
@@ -41,6 +42,10 @@ class Controller {
 
 #ifdef USE_TEXT_SENSOR
   virtual void register_text_sensor(text_sensor::TextSensor *obj);
+#endif
+
+#ifdef USE_ESP32_CAMERA
+  virtual void register_camera(ESP32Camera *obj);
 #endif
 };
 
@@ -89,6 +94,10 @@ class StoringController : public Controller {
   text_sensor::TextSensor *get_text_sensor_by_key(uint32_t key);
 #endif
 
+#ifdef USE_ESP32_CAMERA
+  virtual void register_camera(ESP32Camera *obj);
+#endif
+
 #ifdef USE_BINARY_SENSOR
   std::vector<binary_sensor::BinarySensor *> binary_sensors_;
 #endif
@@ -115,6 +124,10 @@ class StoringController : public Controller {
 
 #ifdef USE_TEXT_SENSOR
   std::vector<text_sensor::TextSensor *> text_sensors_;
+#endif
+
+#ifdef USE_ESP32_CAMERA
+  std::vector<ESP32Camera *> cameras_;
 #endif
 };
 
@@ -159,6 +172,12 @@ class StoringUpdateListenerController : public StoringController {
   void register_text_sensor(text_sensor::TextSensor *obj) override;
 
   virtual void on_text_sensor_update(text_sensor::TextSensor *obj, std::string state) = 0;
+#endif
+
+#ifdef USE_ESP32_CAMERA
+  void register_camera(ESP32Camera *obj) override;
+
+  virtual void on_camera_update(ESP32Camera *obj);
 #endif
 };
 

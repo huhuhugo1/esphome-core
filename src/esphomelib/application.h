@@ -354,7 +354,9 @@ class Application {
 
   ShutdownTrigger *make_shutdown_trigger();
 
-
+#ifdef USE_ESP32_CAMERA
+  void register_camera(ESP32Camera *camera);
+#endif
 
 
 

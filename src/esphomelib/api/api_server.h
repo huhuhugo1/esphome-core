@@ -64,6 +64,9 @@ class APIConnection {
 #ifdef USE_TEXT_SENSOR
   bool send_text_sensor_state(text_sensor::TextSensor *text_sensor, std::string state);
 #endif
+#ifdef USE_ESP32_CAMERA
+  bool send_camera_image(ESP32Camera *camera);
+#endif
   bool send_log_message(int level, const char *tag, const char *line);
   bool send_disconnect_request(const char *reason);
   bool send_ping_request();
@@ -132,6 +135,9 @@ class APIConnection {
   std::string client_info_;
   ListEntitiesIterator list_entities_iterator_;
   InitialStateIterator initial_state_iterator_;
+#ifdef USE_ESP32_CAMERA
+  CameraImage camera_image_;
+#endif
 
   bool state_subscription_{false};
   int log_subscription_{ESPHOMELIB_LOG_LEVEL_NONE};
@@ -177,6 +183,9 @@ class APIServer : public Component, public StoringUpdateListenerController {
 #endif
 #ifdef USE_TEXT_SENSOR
   void on_text_sensor_update(text_sensor::TextSensor *obj, std::string state) override;
+#endif
+#ifdef USE_ESP32_CAMERA
+  void on_camera_update(ESP32Camera *obj) override;
 #endif
   void send_service_call(ServiceCallResponse &call);
   template<typename T>

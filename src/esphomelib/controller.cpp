@@ -161,4 +161,22 @@ void StoringUpdateListenerController::register_text_sensor(text_sensor::TextSens
 }
 #endif
 
+#ifdef USE_ESP32_CAMERA
+void Controller::register_camera(ESP32Camera *obj) {
+
+}
+void StoringController::register_camera(ESP32Camera *obj) {
+  this->cameras_.push_back(obj);
+}
+void StoringUpdateListenerController::register_camera(ESP32Camera *obj) {
+  StoringController::register_camera(obj);
+  obj->add_on_image_callback([this, obj]() {
+    this->on_camera_update(obj);
+  });
+}
+void StoringUpdateListenerController::on_camera_update(ESP32Camera *obj) {
+
+}
+#endif
+
 ESPHOMELIB_NAMESPACE_END

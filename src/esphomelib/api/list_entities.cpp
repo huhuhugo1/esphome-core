@@ -124,6 +124,15 @@ bool ListEntitiesIterator::on_text_sensor(text_sensor::TextSensor *text_sensor) 
   }, APIMessageType::LIST_ENTITIES_TEXT_SENSOR_RESPONSE);
 }
 #endif
+#ifdef USE_ESP32_CAMERA
+bool ListEntitiesIterator::on_camera(ESP32Camera *camera) {
+  return this->client_->send_buffer([camera](APIBuffer &buffer) {
+    buffer.encode_nameable(camera);
+    // string unique_id = 4;
+    buffer.encode_string(4, get_default_unique_id("camera", camera));
+  }, APIMessageType::LIST_ENTITIES_CAMERA_RESPONSE);
+}
+#endif
 
 bool ListEntitiesIterator::on_end() {
   return this->client_->send_empty_message(APIMessageType::LIST_ENTITIES_DONE_RESPONSE);

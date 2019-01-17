@@ -56,10 +56,17 @@ bool InitialStateIterator::on_text_sensor(text_sensor::TextSensor *text_sensor) 
   return this->client_->send_text_sensor_state(text_sensor, text_sensor->state);
 }
 #endif
+#ifdef USE_ESP32_CAMERA
+bool InitialStateIterator::on_camera(ESP32Camera *camera) {
+  // Don't send initial state for camera
+  return true;
+}
+#endif
 InitialStateIterator::InitialStateIterator(StoringController *controller, APIConnection *client)
     : ComponentIterator(controller), client_(client) {
 
 }
+
 
 APIMessageType SubscribeStatesRequest::message_type() const {
   return APIMessageType::SUBSCRIBE_STATES_REQUEST;

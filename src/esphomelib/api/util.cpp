@@ -58,6 +58,9 @@ void APIBuffer::encode_string(uint32_t field, const char *string, size_t len) {
     this->write(data[i]);
   }
 }
+void APIBuffer::encode_bytes(uint32_t field, const uint8_t *string, size_t len) {
+  this->encode_string(field, reinterpret_cast<const char *>(string), len);
+}
 void APIBuffer::encode_fixed32(uint32_t field, uint32_t value) {
   if (value == 0)
     return;
@@ -311,6 +314,21 @@ void ComponentIterator::advance() {
           break;
         } else {
           success = this->on_text_sensor(text_sensor);
+        }
+      }
+      break;
+#endif
+#ifdef USE_ESP32_CAMERA
+    case IteratorState::CAMERA:
+      if (this->at_ >= this->controller_->cameras_.size()) {
+        advance_platform = true;
+      } else {
+        auto *camera = this->controller_->cameras_[this->at_];
+        if (camera->is_internal()) {
+          success = true;
+          break;
+        } else {
+          success = this->on_camera(camera);
         }
       }
       break;

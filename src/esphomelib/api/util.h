@@ -28,6 +28,7 @@ class APIBuffer {
   void encode_bool(uint32_t field, bool value);
   void encode_string(uint32_t field, const std::string &value);
   void encode_string(uint32_t field, const char *string, size_t len);
+  void encode_bytes(uint32_t field, const uint8_t *string, size_t len);
   void encode_fixed32(uint32_t field, uint32_t value);
   void encode_float(uint32_t field, float value);
   void encode_nameable(Nameable *nameable);
@@ -80,6 +81,9 @@ class ComponentIterator {
 #ifdef USE_TEXT_SENSOR
   virtual bool on_text_sensor(text_sensor::TextSensor *text_sensor) = 0;
 #endif
+#ifdef USE_ESP32_CAMERA
+  virtual bool on_camera(ESP32Camera *camera) = 0;
+#endif
   virtual bool on_end();
 
  protected:
@@ -106,6 +110,9 @@ class ComponentIterator {
 #endif
 #ifdef USE_TEXT_SENSOR
     TEXT_SENSOR,
+#endif
+#ifdef USE_ESP32_CAMERA
+    CAMERA,
 #endif
     MAX,
   } state_{IteratorState::NONE};
